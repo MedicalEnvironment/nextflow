@@ -1,0 +1,21 @@
+services:
+  fastqc-workflow:
+    # Force building/running for amd64 to avoid manifest/platform mismatch
+    platform: linux/amd64
+    build: .
+    image: nextflow-fastqc:latest
+    container_name: fastqc-automation
+    volumes:
+      # Mount your input directory containing genome tar.gz files
+      - ./input:/data/input
+      # Mount output directory for results
+      - ./output:/data/output
+      # Optional: mount work directory for Nextflow cache (enables resume)
+      - ./work:/data/work
+    environment:
+      # Nextflow version
+      - NXF_VER=24.10.0
+      # Optional: custom input pattern
+      # - NXF_PARAMS=--inputPattern '*.fq.gz'
+    # Set user to avoid permission issues
+    user: "${UID:-1000}:${GID:-1000}"

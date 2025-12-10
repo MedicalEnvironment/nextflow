@@ -1,20 +1,20 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-params.dataDir = "/home_beegfs/akbar01/material/03_example_data/R1"
-params.outputDir = "/home_beegfs/akbar01/nextflow_hpc/output"
-params.imageFile = "/home_beegfs/akbar01/nextflow_hpc/containers/fastqc_v0.11.9_cv8.sif"
-params.fastqFiles = ["sod1_R1_001.fastq.gz", "sod3_R1_001.fastq.gz", "sod5_R1_001.fastq.gz"]
+// Default parameters for automated Docker execution
+params.dataDir = "/data/input"
+params.outputDir = "/data/output"
+params.inputPattern = "*.fastq.gz"  // Pattern to match FASTQ files
 
-// Create channels
-fastq_ch = Channel.fromList(params.fastqFiles)
-    .map { filename -> 
-        file("${params.dataDir}/${filename}")
-    }
+// Auto-discover FASTQ files from input directory
+fastq_ch = Channel
+    .fromPath("${params.dataDir}/${params.inputPattern}")
+    .ifEmpty { error "No FASTQ files found in ${params.dataDir} matching pattern ${params.inputPattern}" }
 
 process runFastQC {
     tag "${fastqFile.simpleName}"
     publishDir params.outputDir, mode: 'copy'
+    container 'biocontainers/fastqc:v0.11.9_cv8'
     
     input:
     path fastqFile
@@ -25,17 +25,7 @@ process runFastQC {
     
     script:
     """
-    # Create a local output directory
-    mkdir -p output
-    
-    # Run FastQC using singularity
-    singularity exec \\
-        ${params.imageFile} \\
-        fastqc -o output ${params.dataDir}/${fastqFile.getName()}
-    
-    # Move the output files to the expected location
-    mv output/${fastqFile.simpleName}_fastqc.zip .
-    mv output/${fastqFile.simpleName}_fastqc.html .
+    fastqc -o . ${fastqFile}
     """
 }
 
