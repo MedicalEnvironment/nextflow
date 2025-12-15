@@ -18,7 +18,7 @@ if [ ! -d "$INPUT_DIR" ]; then
 fi
 
 # Check for tar.gz files in input directory
-TAR_FILES=$(find "$INPUT_DIR" -maxdepth 1 -name "*.tar.gz" -o -name "*.tgz" 2>/dev/null)
+TAR_FILES=$(find "$INPUT_DIR" -maxdepth 1 \( -name "*.tar.gz" -o -name "*.tgz" \) 2>/dev/null || true)
 
 if [ -n "$TAR_FILES" ]; then
     echo "Found compressed genome files. Extracting..."
@@ -30,7 +30,7 @@ if [ -n "$TAR_FILES" ]; then
 fi
 
 # Count FASTQ files
-FASTQ_COUNT=$(find "$INPUT_DIR" -name "*.fastq.gz" -o -name "*.fq.gz" | wc -l)
+FASTQ_COUNT=$(find "$INPUT_DIR" -type f \( -name "*.fastq.gz" -o -name "*.fq.gz" \) 2>/dev/null | wc -l || echo 0)
 
 if [ "$FASTQ_COUNT" -eq 0 ]; then
     echo "Error: No FASTQ files found in $INPUT_DIR"
@@ -62,7 +62,6 @@ nextflow run fastqc_subworkflow.nf \
     -profile standard \
     --dataDir "$INPUT_DIR" \
     --outputDir "$OUTPUT_DIR" \
-    -with-docker \
     -resume
 
 # Check if workflow completed successfully

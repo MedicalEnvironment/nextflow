@@ -17,5 +17,5 @@ services:
       - NXF_VER=24.10.0
       # Optional: custom input pattern
       # - NXF_PARAMS=--inputPattern '*.fq.gz'
-    # Set user to avoid permission issues
+    # Set user to avoid permission issues on Linux (automatic UID/GID on Windows)
     user: "${UID:-1000}:${GID:-1000}"
